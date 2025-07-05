@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather & Air Quality App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #303030;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    h1 {
+      text-align: center;
+      color: #59ace4;
+    }
+    input {
+      padding: 10px;
+      width: 100%;
+      margin: 5px;
+      font-size: 16px;
+      text-align: center;
+    }
+    button{
+      padding: 10px;
+      width: 100%;
+      font-size: 16px;
+      text-align: center;
+    }
+    .output {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #ccc;
+      min-height: 100px;
+    }
+
+    /* Spinner styles */
+    .spinner {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 80px;
+    }
+
+    .spinner:after {
+      content: "";
+      width: 40px;
+      height: 40px;
+      border: 6px solid #3498db;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1.5s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <h1>🌍 Weather & Air Quality</h1>
+  <input type="number" id="lat" placeholder="Enter Latitude" step="any">
+  <input type="number" id="lon" placeholder="Enter Longitude" step="any">
+  <button onclick="getWeather()">Get Weather</button>
+  
+  <div class="output" id="result"></div>
+
+  <script>
+    async function getWeather() {
+      const lat = document.getElementById("lat").value;
+      const lon = document.getElementById("lon").value;
+      const result = document.getElementById("result");
+
+      if (!lat || !lon) {
+        result.innerHTML = "⚠️ Please enter both latitude and longitude.";
+        return;
+      }
+
+      result.innerHTML = `<div class="spinner"></div>`;
+
+      try {
+        const weatherRes = await fetch(
+          `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&hourly=precipitation,uv_index&timezone=auto`
+        );
+        const airRes = await fetch(
+          `https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&hourly=pm2_5&timezone=auto`
+        );
+        
+        const weatherData = await weatherRes.json();
+        const airData = await airRes.json();
+
+        const cw = weatherData.current_weather;
+        const precip = weatherData.hourly.precipitation.slice(0, 12);
+        const uv = weatherData.hourly.uv_index.slice(0, 12);
+        const pm = airData.hourly.pm2_5.slice(0, 12);
+
+        const rainSum = precip.reduce((a, b) => a + b, 0);
+        const avgUv = uv.reduce((a, b) => a + b, 0) / uv.length;
+        const avgPm = pm.reduce((a, b) => a + b, 0) / pm.length;
+
+        result.innerHTML = `
+          <h3>📍 Location: ${lat}, ${lon}</h3>
+          <p>🕒 Time: ${cw.time} (${weatherData.timezone})</p>
+          <p>🌡️ Temperature: ${cw.temperature} °C</p>
+          <p>💨 Wind Speed: ${cw.windspeed} km/h</p>
+          <p>🌧️ Rain Next 12h: ${rainSum.toFixed(2)} mm</p>
+          <p>🔆 Avg UV Index (12h): ${avgUv.toFixed(2)}</p>
+          <p>🫁 Avg PM2.5 (12h): ${avgPm.toFixed(2)} µg/m³</p>
+        `;
+      } catch (error) {
+        result.innerHTML = "❌ Error fetching data.";
+        console.error(error);
+      }
+    }
+  </script>
+</body>
+</html>
