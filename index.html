@@ -15,26 +15,45 @@
     h1 {
       text-align: center;
       color: #59ace4;
+      font-size: 25px;
     }
     input {
+      height: 20px;
+      background-color: #1e1e1e;
+      color: #00bfff;
+      border: none;
       padding: 10px;
-      width: 100%;
-      margin: 5px;
-      font-size: 16px;
-      text-align: center;
+      font-size: 14px;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 0 10px #000000;
     }
     button{
-      padding: 10px;
-      width: 100%;
-      font-size: 16px;
-      text-align: center;
+      background-color: #00bfff;
+      color: #121212;
+      border: none;
+      box-shadow: 0 0 10px #000000;
+      padding: 10px 18px;
+      font-size: 14px;
+      cursor: pointer;
+      border-radius: 8px;
+      transition: 0.3s;
+      justify-content: center;
+    }
+    button:hover {
+      background-color: #009acc;
     }
     .output {
-      background: #ffffff;
+      background: #1e1e1e;
       padding: 20px;
+      width: 100%;
+      max-width: 500px;
       border-radius: 10px;
       box-shadow: 0 0 10px #ccc;
       min-height: 100px;
+      color: #ffffff;
+      margin: 20px auto 0 auto;
+      box-sizing: border-box;
     }
 
     /* Spinner styles */
@@ -101,9 +120,11 @@
         const avgUv = uv.reduce((a, b) => a + b, 0) / uv.length;
         const avgPm = pm.reduce((a, b) => a + b, 0) / pm.length;
 
+        const [date, time] = cw.time.split("T"); // ✅ Format time
+
         result.innerHTML = `
           <h3>📍 Location: ${lat}, ${lon}</h3>
-          <p>🕒 Time: ${cw.time} (${weatherData.timezone})</p>
+          <p>🕒 Date: ${date} Time: ${time} (${weatherData.timezone})</p>
           <p>🌡️ Temperature: ${cw.temperature} °C</p>
           <p>💨 Wind Speed: ${cw.windspeed} km/h</p>
           <p>🌧️ Rain Next 12h: ${rainSum.toFixed(2)} mm</p>
@@ -115,6 +136,13 @@
         console.error(error);
       }
     }
+
+    // ✅ Trigger getWeather() when Enter is pressed
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" && (document.activeElement.id === "lat" || document.activeElement.id === "lon")) {
+        getWeather();
+      }
+    });
   </script>
 </body>
 </html>
